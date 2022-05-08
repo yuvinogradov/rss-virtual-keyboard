@@ -202,7 +202,6 @@ function keyDownHandler(event) {
       break;
 
     case 'Tab':
-      key = '\t';
       insertChar(key, content, currentPosition);
       break;
     case 'Meta':
@@ -220,7 +219,20 @@ function keyDownHandler(event) {
 
     default:
       if (layoutEn[code]) {
-        insertChar(key, content, currentPosition);
+        if (lang === 'en') {
+          if ((capsLockFlag && shiftFlag) || (!capsLockFlag && !shiftFlag)) {
+            insertChar(layoutEn[code].regular, content, currentPosition);
+          } else {
+            insertChar(layoutEn[code].shift, content, currentPosition);
+          }
+        }
+        if (lang === 'ru') {
+          if ((capsLockFlag && shiftFlag) || (!capsLockFlag && !shiftFlag)) {
+            insertChar(layoutRu[code].regular, content, currentPosition);
+          } else {
+            insertChar(layoutRu[code].shift, content, currentPosition);
+          }
+        }
       }
       break;
   }
@@ -241,7 +253,6 @@ function keyDownHandler(event) {
 
   console.log('capslock flag:', capsLockFlag);
   console.log('shift    flag:', shiftFlag);
-
 }
 
 function insertChar(key, content, currentPosition) {
