@@ -207,6 +207,13 @@ function keyDownHandler(event) {
     case 'Enter':
       insertChar('\n', content, currentPosition);
       break;
+    case 'Backspace':
+      if (currentPosition > 0) {
+        textArea.value = content.slice(0, currentPosition - 1) + content.slice(currentPosition);
+        textArea.selectionStart = currentPosition - 1;
+        textArea.selectionEnd = textArea.selectionStart;
+      }
+      break;
     case 'Meta':
       break;
     case 'Control':
