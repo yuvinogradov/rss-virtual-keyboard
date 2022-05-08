@@ -221,6 +221,13 @@ function keyDownHandler(event) {
         textArea.selectionEnd = textArea.selectionStart;
       }
       break;
+    case 'ArrowRight':
+      if (currentPosition < textArea.value.length) {
+        // textArea.value = content.slice(0, currentPosition) + content.slice(currentPosition + 1);
+        textArea.selectionStart = currentPosition + 1;
+        textArea.selectionEnd = textArea.selectionStart;
+      }
+      break;
     case 'Meta':
       break;
     case 'Control':
