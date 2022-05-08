@@ -202,7 +202,10 @@ function keyDownHandler(event) {
       break;
 
     case 'Tab':
-      insertChar(key, content, currentPosition);
+      insertChar('\t', content, currentPosition);
+      break;
+    case 'Enter':
+      insertChar('\n', content, currentPosition);
       break;
     case 'Meta':
       break;
