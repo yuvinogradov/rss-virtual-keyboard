@@ -51,7 +51,7 @@
 }
 
 #row3 {
-  grid-template-columns: repeat(14, 1fr);
+  grid-template-columns: repeat(13, 1fr);
 }
 
 #row4 {
@@ -86,7 +86,7 @@
 }
 
 #ShiftLeft {
-  width: 115px;
+  width: 135px;
   font-size: 0.8em;
 }
 #ShiftRight {
@@ -99,7 +99,7 @@
   font-size: 0.8em;
 }
 
-#Win {
+#Win, #MetaLeft {
   width: 55px;
   font-size: 0.8em;
 }
@@ -109,7 +109,7 @@
   font-size: 0.8em;
 }
 #Space {
-  width: 420px;
+  width: 410px;
   font-size: 0.8em;
 }
 #AltRight {
@@ -155,4 +155,13 @@
   box-shadow: 1px 1px 0 0;
   transition: 0.3s;
   background-color: #aaa;
+}
+
+.hidden {
+  display: none;
+}
+
+.caps-lock-on {
+  text-shadow: 1px 1px 2px #54ff00, 0 0 1em #00ff34, 0 0 0.2em #00ff4e;
+  color: rgb(0, 255, 0);
 }

@@ -1,3 +1,9 @@
+let lang = 'en';
+let capsLockFlag;
+let shiftFlag = false;
+let ControlFlag;
+let AltFlag;
+
 const layoutEn = {
   Backquote: { regular: '`', shift: '~', keycode: '192' },
   Digit1: { regular: '1', shift: '!', keycode: '49' },
@@ -63,7 +69,7 @@ const layoutEn = {
   ArrowUp: { regular: '&uarr;', shift: null, keycode: '38' },
   ArrowDown: { regular: '&darr;', shift: null, keycode: '40' },
   ArrowRight: { regular: '&rarr;', shift: null, keycode: '39' },
-  Win: { regular: 'Win', shift: null, keycode: '1000' },
+  MetaLeft: { regular: 'Win', shift: null, keycode: '1000' },
 };
 
 const layoutRu = {
@@ -131,15 +137,15 @@ const layoutRu = {
   ArrowUp: { regular: '&uarr;', shift: null, keycode: '38' },
   ArrowDown: { regular: '&darr;', shift: null, keycode: '40' },
   ArrowRight: { regular: '&rarr;', shift: null, keycode: '39' },
-  Win: { regular: 'Win', shift: null, keycode: '1000' },
+  MetaLeft: { regular: 'Win', shift: null, keycode: '1000' },
 };
 
 const keyboardRows = [
   ['Backquote', 'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0', 'Minus', 'Equal', 'Delete'],
   ['Tab', 'KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backspace'],
   ['CapsLock', 'KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyG', 'KeyH', 'KeyJ', 'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Backslash', 'Enter'],
-  ['ShiftLeft', 'IntlBackslash', 'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'ArrowUp', 'ShiftRight'],
-  ['ControlLeft', 'Win', 'AltLeft', 'Space', 'AltRight', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ControlRight'],
+  ['ShiftLeft', 'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM', 'Comma', 'Period', 'Slash', 'ArrowUp', 'ShiftRight'],
+  ['ControlLeft', 'MetaLeft', 'AltLeft', 'Space', 'AltRight', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ControlRight'],
 ];
 
 const BODY = document.body;
@@ -168,18 +174,103 @@ container.appendChild(keyboardWrapper);
 function keyDownHandler(event) {
   const currentPosition = textArea.selectionStart;
   const content = textArea.value;
+  let { key } = event;
+  const { code } = event;
 
-  console.log(`${event.code} down`);
-  document.querySelector(`#${event.code}`).classList.add('pressed');
+  if (capsLockFlag === undefined) {
+    if (key === 'CapsLock') {
+      capsLockFlag = !event.getModifierState('CapsLock');
+    } else {
+      capsLockFlag = event.getModifierState('CapsLock');
+    }
+  }
+  console.log(`${code} down (${key})  LayoutEN: ${layoutEn[code]}`);
 
-  textArea.value = content.slice(0, currentPosition) + event.key + content.slice(currentPosition);
+  if (layoutEn[code]) {
+    document.querySelector(`#${code}`).classList.add('pressed');
+  }
+  switch (key) {
+    case 'Shift':
+      shiftFlag = true;
+      // shiftOn(!((capsLockFlag && shiftFlag) || !(capsLockFlag && shiftFlag)));
+      break;
+    case 'CapsLock':
+      capsLockFlag = !capsLockFlag;
+
+      // shiftOn(!(capsLockFlag && shiftFlag) || (capsLockFlag || shiftFlag));
+      // shiftOn(!((capsLockFlag && shiftFlag) || !(capsLockFlag && shiftFlag)));
+      break;
+
+    case 'Tab':
+      key = '\t';
+      insertChar(key, content, currentPosition);
+      break;
+    case 'Meta':
+      break;
+    case 'Control':
+      ControlFlag = true;
+      switchLang();
+      updateLang();
+      break;
+    case 'Alt':
+      AltFlag = true;
+      switchLang();
+      updateLang();
+      break;
+
+    default:
+      if (layoutEn[code]) {
+        insertChar(key, content, currentPosition);
+      }
+      break;
+  }
+
+  if (layoutEn[code]) {
+    if (capsLockFlag) {
+      document.querySelector('#CapsLock').classList.add('caps-lock-on');
+    } else {
+      document.querySelector('#CapsLock').classList.remove('caps-lock-on');
+    }
+  }
+
+  if ((capsLockFlag && shiftFlag) || (!capsLockFlag && !shiftFlag)) {
+    shiftOn(false);
+  } else {
+    shiftOn(true);
+  }
+
+  console.log('capslock flag:', capsLockFlag);
+  console.log('shift    flag:', shiftFlag);
+
+}
+
+function insertChar(key, content, currentPosition) {
+  textArea.value = content.slice(0, currentPosition) + key + content.slice(currentPosition);
   textArea.selectionStart = currentPosition + 1;
   textArea.selectionEnd = textArea.selectionStart;
 }
-
 function keyUpHandler(event) {
-  console.log(`${event.code} up`);
-  document.querySelector(`#${event.code}`).classList.remove('pressed');
+  const { key, code } = event;
+  console.log(`${code} up`);
+  if (layoutEn[code]) {
+    document.querySelector(`#${code}`).classList.remove('pressed');
+  }
+
+  switch (key) {
+    case 'Shift':
+      shiftOn((capsLockFlag));
+      shiftFlag = false;
+      break;
+    case 'Control':
+      ControlFlag = false;
+      break;
+    case 'Alt':
+      AltFlag = false;
+      break;
+
+    default:
+      break;
+  }
 }
 
 textArea.addEventListener('keydown', (event) => { event.preventDefault(); });
@@ -200,7 +291,17 @@ class Keyboard {
         Key.id = keyCode;
         Key.classList.add('key');
         if (keyCode !== 'Space') {
-          Key.innerHTML = layoutEn[keyCode].regular;
+          // Key.innerHTML = layoutEn[keyCode].regular;
+          Key.innerHTML = `
+            <div class="ru ${lang === 'ru' ? '' : 'hidden'}">
+              <div class="regular ${shiftFlag ? 'hidden' : ''}">${layoutRu[keyCode].regular}</div>
+              <div class="shift ${shiftFlag ? '' : 'hidden'}">${layoutRu[keyCode].shift || layoutRu[keyCode].regular}</div>
+            </div>
+            <div class="en ${lang === 'en' ? '' : 'hidden'}">
+              <div class="regular ${shiftFlag ? 'hidden' : ''}">${layoutEn[keyCode].regular}</div>
+              <div class="shift  ${shiftFlag ? '' : 'hidden'}">${layoutEn[keyCode].shift || layoutEn[keyCode].regular}</div>
+            </div>
+          `;
         } else {
           Key.innerHTML = '&nbsp;';
         }
@@ -208,11 +309,43 @@ class Keyboard {
       });
       keyboardWrapper.appendChild(keyboardRow);
     });
+
+    textArea.dispatchEvent(new KeyboardEvent('keydown', { code: 'CapsLock' }));
+    textArea.dispatchEvent(new KeyboardEvent('keydown', { code: 'CapsLock' }));
   }
 }
 
 const kb = new Keyboard();
 
+function switchLang() {
+  if (AltFlag && ControlFlag) {
+    if (lang === 'en') {
+      lang = 'ru';
+    } else {
+      lang = 'en';
+    }
+    AltFlag = false;
+    ControlFlag = false;
+  }
+}
+
+function updateLang() {
+  const keys = document.querySelectorAll(`.${lang === 'en' ? 'ru' : 'en'}`);
+  keys.forEach((k) => k.classList.add('hidden'));
+  const keysNew = document.querySelectorAll(`.${lang}`);
+  keysNew.forEach((k) => k.classList.remove('hidden'));
+}
+
+function shiftOn(on) {
+  const keys = document.querySelectorAll(`.${!on ? 'shift' : 'regular'}`);
+  keys.forEach((k) => k.classList.add('hidden'));
+  const keysNew = document.querySelectorAll(`.${on ? 'shift' : 'regular'}`);
+  keysNew.forEach((k) => k.classList.remove('hidden'));
+}
+
+// textArea.addEventListener('focus', (event) => {
+//   // console.log(event.getModifierState('CapsLock'));
+// }, true);
 // function drawKeyboard() {
 //   keyboardRows.forEach((row, index) => {
 //     const keyboardRow = document.createElement('div');
