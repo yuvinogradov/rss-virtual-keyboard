@@ -62,7 +62,7 @@ const layoutEn = {
   ShiftRight: { regular: 'Shift', shift: null, keycode: '16' },
   ControlLeft: { regular: 'Ctrl', shift: null, keycode: '17' },
   AltLeft: { regular: 'Alt', shift: null, keycode: '18' },
-  Space: { regular: ' ', shift: null, keycode: '32' },
+  Space: { regular: ' ', shift: ' ', keycode: '32' },
   AltRight: { regular: 'Alt', shift: null, keycode: '225' },
   ControlRight: { regular: 'Ctrl', shift: null, keycode: '17' },
   ArrowLeft: { regular: '&larr;', shift: null, keycode: '37' },
@@ -130,7 +130,7 @@ const layoutRu = {
   ShiftRight: { regular: 'Shift', shift: null, keycode: '16' },
   ControlLeft: { regular: 'Ctrl', shift: null, keycode: '17' },
   AltLeft: { regular: 'Alt', shift: null, keycode: '18' },
-  Space: { regular: ' ', shift: null, keycode: '32' },
+  Space: { regular: ' ', shift: ' ', keycode: '32' },
   AltRight: { regular: 'Alt', shift: null, keycode: '225' },
   ControlRight: { regular: 'Ctrl', shift: null, keycode: '17' },
   ArrowLeft: { regular: '&larr;', shift: null, keycode: '37' },
@@ -250,7 +250,7 @@ function keyDownHandler(event) {
       capsLockFlag = event.getModifierState('CapsLock');
     }
   }
-  // console.log(`${code} down (${key})  LayoutEN: ${layoutEn[code]}`);
+  console.log(`${code} down (${code})  LayoutEN: ${layoutEn[code]}`);
 
   if (layoutEn[code]) {
     document.querySelector(`#${code}`).classList.add('pressed');
@@ -453,7 +453,16 @@ class Keyboard {
             </div>
           `;
         } else {
-          Key.innerHTML = '&nbsp;';
+          Key.innerHTML = `
+            <div class="ru ${lang === 'ru' ? '' : 'hidden'}">
+              <div class="regular ${shiftFlag ? 'hidden' : ''}">&nbsp</div>
+              <div class="shift ${shiftFlag ? '' : 'hidden'}">&nbsp</div>
+            </div>
+            <div class="en ${lang === 'en' ? '' : 'hidden'}">
+              <div class="regular ${shiftFlag ? 'hidden' : ''}">&nbsp</div>
+              <div class="shift  ${shiftFlag ? '' : 'hidden'}">&nbsp</div>
+            </div>
+          `;
         }
         keyboardRow.appendChild(Key);
       });
