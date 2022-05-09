@@ -165,6 +165,7 @@ MAIN_WRAPPER.appendChild(container);
 
 const textArea = document.createElement('textarea');
 textArea.classList.add('textarea');
+
 container.appendChild(textArea);
 
 const keyboardWrapper = document.createElement('div');
@@ -176,7 +177,13 @@ function keyDownHandler(event) {
   const content = textArea.value;
   let { key } = event;
   const { code } = event;
+  // const currentLine = getCurrentLineNumber(textArea);
+  // const totalLines = getTotalLinesNumber(textArea);
+  const {
+    newLines, currentLine, totalLines, shiftInLine,
+  } = getLinesInfo(textArea);
 
+  textArea.focus();
   if (capsLockFlag === undefined) {
     if (key === 'CapsLock') {
       capsLockFlag = !event.getModifierState('CapsLock');
@@ -227,6 +234,39 @@ function keyDownHandler(event) {
         textArea.selectionStart = currentPosition + 1;
         textArea.selectionEnd = textArea.selectionStart;
       }
+      break;
+    case 'ArrowLeft':
+      if (currentPosition > 0) {
+        textArea.selectionStart = currentPosition - 1;
+        textArea.selectionEnd = textArea.selectionStart;
+      }
+      break;
+    case 'ArrowUp':
+      console.log('Current line / total lines: ', currentLine, '/', totalLines);
+      console.log('new line indexes: ', getLinesInfo(textArea));
+
+      if (currentLine > 1) {
+        textArea.selectionStart = Math.min(
+          (newLines[currentLine - 3] || -1) + shiftInLine,
+          newLines[currentLine - 2],
+        );
+        textArea.selectionEnd = textArea.selectionStart;
+      }
+      // console.log('new line indexes: ', getLinesInfo(textArea));
+      break;
+    case 'ArrowDown':
+      console.log('Current line / total lines: ', currentLine, '/', totalLines);
+      console.log('new line indexes: ', getLinesInfo(textArea));
+
+      if (currentLine < totalLines) {
+        console.log('newLines[currentLine - 1], shiftInLine, currentLine === 1 ? 0 : 1', newLines[currentLine - 1], shiftInLine, currentLine === 1 ? 0 : 1);
+        textArea.selectionStart = Math.min(
+          newLines[currentLine - 1] + shiftInLine + (currentLine === 1 ? 1 : 0),
+          newLines[currentLine] || textArea.value.length,
+        );
+        textArea.selectionEnd = textArea.selectionStart;
+      }
+      console.log('new line indexes: ', getLinesInfo(textArea));
       break;
     case 'Meta':
       break;
@@ -351,6 +391,7 @@ class Keyboard {
 }
 
 const kb = new Keyboard();
+textArea.focus();
 
 function switchLang() {
   if (AltFlag && ControlFlag) {
@@ -376,6 +417,32 @@ function shiftOn(on) {
   keys.forEach((k) => k.classList.add('hidden'));
   const keysNew = document.querySelectorAll(`.${on ? 'shift' : 'regular'}`);
   keysNew.forEach((k) => k.classList.remove('hidden'));
+}
+
+function getCurrentLineNumber(textarea) {
+  return textarea.value.substr(0, textarea.selectionStart).split('\n').length;
+}
+
+function getTotalLinesNumber(textarea) {
+  return textarea.value.split('\n').length;
+}
+
+// returns object with array of all \n positions and with a current line and shift
+function getLinesInfo(textarea) {
+  const newLinePositionsArray = textarea.value.split('').reduce((acc, val, index) => {
+    if (val === '\n') {
+      acc.push(index);
+    }
+    return acc;
+  }, []);
+
+  return {
+    newLines: newLinePositionsArray,
+    currentLine: getCurrentLineNumber(textarea),
+    totalLines: getTotalLinesNumber(textarea),
+    shiftInLine: textarea.selectionStart
+      - (newLinePositionsArray[getCurrentLineNumber(textarea) - 2] || 0),
+  };
 }
 
 // textArea.addEventListener('focus', (event) => {
