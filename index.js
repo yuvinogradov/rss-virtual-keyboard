@@ -208,8 +208,10 @@ MAIN_WRAPPER.classList.add('main-wrapper');
 BODY.appendChild(MAIN_WRAPPER);
 
 const TITLE = document.createElement('div');
-TITLE.classList.add('title');
-TITLE.innerHTML = 'RSS Virtual Keyboard';
+TITLE.classList.add('text');
+TITLE.innerHTML = `<div class="title">RSS Virtual Keyboard</div>
+<div class="subtitle">The Windows Keyboard</div>
+<div class="switch-layout">Use left <span>Ctrl+Alt</span> to switch language. The selected language will be loaded on the next time page load</div>`;
 MAIN_WRAPPER.appendChild(TITLE);
 
 const container = document.createElement('div');
