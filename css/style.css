@@ -152,6 +152,7 @@
   font-family: Arial, Helvetica, sans-serif;
   color: white;
   cursor: pointer;
+  user-select: none;
 }
 
 .pressed {
