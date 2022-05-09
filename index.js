@@ -234,10 +234,7 @@ function insertChar(key, content, currentPosition) {
 function keyDownHandler(event) {
   const currentPosition = textArea.selectionStart;
   const content = textArea.value;
-  // let { key } = event;
   const { code } = event;
-  // const currentLine = getCurrentLineNumber(textArea);
-  // const totalLines = getTotalLinesNumber(textArea);
   const {
     newLines, currentLine, totalLines, shiftInLine,
   } = getLinesInfo(textArea);
@@ -250,7 +247,6 @@ function keyDownHandler(event) {
       capsLockFlag = event.getModifierState('CapsLock');
     }
   }
-  console.log(`${code} down (${code})  LayoutEN: ${layoutEn[code]}`);
 
   if (layoutEn[code]) {
     document.querySelector(`#${code}`).classList.add('pressed');
@@ -259,13 +255,10 @@ function keyDownHandler(event) {
     case 'ShiftLeft':
     case 'ShiftRight':
       shiftFlag = true;
-      // shiftOn(!((capsLockFlag && shiftFlag) || !(capsLockFlag && shiftFlag)));
       break;
     case 'CapsLock':
       capsLockFlag = !capsLockFlag;
 
-      // shiftOn(!(capsLockFlag && shiftFlag) || (capsLockFlag || shiftFlag));
-      // shiftOn(!((capsLockFlag && shiftFlag) || !(capsLockFlag && shiftFlag)));
       break;
 
     case 'Tab':
@@ -290,7 +283,6 @@ function keyDownHandler(event) {
       break;
     case 'ArrowRight':
       if (currentPosition < textArea.value.length) {
-        // textArea.value = content.slice(0, currentPosition) + content.slice(currentPosition + 1);
         textArea.selectionStart = currentPosition + 1;
         textArea.selectionEnd = textArea.selectionStart;
       }
@@ -302,9 +294,6 @@ function keyDownHandler(event) {
       }
       break;
     case 'ArrowUp':
-      console.log('Current line / total lines: ', currentLine, '/', totalLines);
-      console.log('new line indexes: ', getLinesInfo(textArea));
-
       if (currentLine > 1) {
         textArea.selectionStart = Math.min(
           (newLines[currentLine - 3] || -1) + shiftInLine,
@@ -312,21 +301,16 @@ function keyDownHandler(event) {
         );
         textArea.selectionEnd = textArea.selectionStart;
       }
-      // console.log('new line indexes: ', getLinesInfo(textArea));
       break;
     case 'ArrowDown':
-      console.log('Current line / total lines: ', currentLine, '/', totalLines);
-      console.log('new line indexes: ', getLinesInfo(textArea));
 
       if (currentLine < totalLines) {
-        console.log('newLines[currentLine - 1], shiftInLine, currentLine === 1 ? 0 : 1', newLines[currentLine - 1], shiftInLine, currentLine === 1 ? 0 : 1);
         textArea.selectionStart = Math.min(
           newLines[currentLine - 1] + shiftInLine + (currentLine === 1 ? 1 : 0),
           newLines[currentLine] || textArea.value.length,
         );
         textArea.selectionEnd = textArea.selectionStart;
       }
-      console.log('new line indexes: ', getLinesInfo(textArea));
       break;
     case 'MetaLeft':
       break;
@@ -376,14 +360,10 @@ function keyDownHandler(event) {
   } else {
     shiftOn(true);
   }
-
-  console.log('capslock flag:', capsLockFlag);
-  console.log('shift    flag:', shiftFlag);
 }
 
 function keyUpHandler(event) {
   const { key, code } = event;
-  console.log(`${code} up`);
   if (layoutEn[code]) {
     document.querySelector(`#${code}`).classList.remove('pressed');
   }
@@ -441,7 +421,6 @@ class Keyboard {
         Key.id = keyCode;
         Key.classList.add('key');
         if (keyCode !== 'Space') {
-          // Key.innerHTML = layoutEn[keyCode].regular;
           Key.innerHTML = `
             <div class="ru ${lang === 'ru' ? '' : 'hidden'}">
               <div class="regular ${shiftFlag ? 'hidden' : ''}">${layoutRu[keyCode].regular}</div>
@@ -468,9 +447,6 @@ class Keyboard {
       });
       keyboardWrapper.appendChild(keyboardRow);
     });
-
-    // textArea.dispatchEvent(new KeyboardEvent('keydown', { code: 'CapsLock' }));
-    // textArea.dispatchEvent(new KeyboardEvent('keydown', { code: 'CapsLock' }));
   }
 }
 
