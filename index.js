@@ -148,6 +148,59 @@ const keyboardRows = [
   ['ControlLeft', 'MetaLeft', 'AltLeft', 'Space', 'AltRight', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'ControlRight'],
 ];
 
+function switchLang() {
+  if (AltFlag && ControlFlag) {
+    if (lang === 'en') {
+      lang = 'ru';
+    } else {
+      lang = 'en';
+    }
+    localStorage.setItem('lang', lang);
+    AltFlag = false;
+    ControlFlag = false;
+  }
+}
+
+function updateLang() {
+  const keys = document.querySelectorAll(`.${lang === 'en' ? 'ru' : 'en'}`);
+  keys.forEach((k) => k.classList.add('hidden'));
+  const keysNew = document.querySelectorAll(`.${lang}`);
+  keysNew.forEach((k) => k.classList.remove('hidden'));
+}
+
+function shiftOn(on) {
+  const keys = document.querySelectorAll(`.${!on ? 'shift' : 'regular'}`);
+  keys.forEach((k) => k.classList.add('hidden'));
+  const keysNew = document.querySelectorAll(`.${on ? 'shift' : 'regular'}`);
+  keysNew.forEach((k) => k.classList.remove('hidden'));
+}
+
+function getCurrentLineNumber(textarea) {
+  return textarea.value.substr(0, textarea.selectionStart).split('\n').length;
+}
+
+function getTotalLinesNumber(textarea) {
+  return textarea.value.split('\n').length;
+}
+
+// returns object with array of all \n positions and with a current line and shift
+function getLinesInfo(textarea) {
+  const newLinePositionsArray = textarea.value.split('').reduce((acc, val, index) => {
+    if (val === '\n') {
+      acc.push(index);
+    }
+    return acc;
+  }, []);
+
+  return {
+    newLines: newLinePositionsArray,
+    currentLine: getCurrentLineNumber(textarea),
+    totalLines: getTotalLinesNumber(textarea),
+    shiftInLine: textarea.selectionStart
+      - (newLinePositionsArray[getCurrentLineNumber(textarea) - 2] || 0),
+  };
+}
+
 const BODY = document.body;
 
 const MAIN_WRAPPER = document.createElement('div');
@@ -172,10 +225,16 @@ const keyboardWrapper = document.createElement('div');
 keyboardWrapper.classList.add('keyboard');
 container.appendChild(keyboardWrapper);
 
+function insertChar(key, content, currentPosition) {
+  textArea.value = content.slice(0, currentPosition) + key + content.slice(currentPosition);
+  textArea.selectionStart = currentPosition + 1;
+  textArea.selectionEnd = textArea.selectionStart;
+}
+
 function keyDownHandler(event) {
   const currentPosition = textArea.selectionStart;
   const content = textArea.value;
-  let { key } = event;
+  // let { key } = event;
   const { code } = event;
   // const currentLine = getCurrentLineNumber(textArea);
   // const totalLines = getTotalLinesNumber(textArea);
@@ -185,19 +244,20 @@ function keyDownHandler(event) {
 
   textArea.focus();
   if (capsLockFlag === undefined) {
-    if (key === 'CapsLock') {
+    if (code === 'CapsLock' && event.getModifierState) {
       capsLockFlag = !event.getModifierState('CapsLock');
-    } else {
+    } else if (event.getModifierState) {
       capsLockFlag = event.getModifierState('CapsLock');
     }
   }
-  console.log(`${code} down (${key})  LayoutEN: ${layoutEn[code]}`);
+  // console.log(`${code} down (${key})  LayoutEN: ${layoutEn[code]}`);
 
   if (layoutEn[code]) {
     document.querySelector(`#${code}`).classList.add('pressed');
   }
-  switch (key) {
-    case 'Shift':
+  switch (code) {
+    case 'ShiftLeft':
+    case 'ShiftRight':
       shiftFlag = true;
       // shiftOn(!((capsLockFlag && shiftFlag) || !(capsLockFlag && shiftFlag)));
       break;
@@ -268,14 +328,16 @@ function keyDownHandler(event) {
       }
       console.log('new line indexes: ', getLinesInfo(textArea));
       break;
-    case 'Meta':
+    case 'MetaLeft':
       break;
-    case 'Control':
+    case 'ControlLeft':
+    case 'ControlRight':
       ControlFlag = true;
       switchLang();
       updateLang();
       break;
-    case 'Alt':
+    case 'AltLeft':
+    case 'AltRight':
       AltFlag = true;
       switchLang();
       updateLang();
@@ -319,11 +381,6 @@ function keyDownHandler(event) {
   console.log('shift    flag:', shiftFlag);
 }
 
-function insertChar(key, content, currentPosition) {
-  textArea.value = content.slice(0, currentPosition) + key + content.slice(currentPosition);
-  textArea.selectionStart = currentPosition + 1;
-  textArea.selectionEnd = textArea.selectionStart;
-}
 function keyUpHandler(event) {
   const { key, code } = event;
   console.log(`${code} up`);
@@ -354,9 +411,27 @@ BODY.removeEventListener('keyup', keyUpHandler);
 
 BODY.addEventListener('keydown', keyDownHandler);
 BODY.addEventListener('keyup', keyUpHandler);
+document.addEventListener('click', () => { textArea.focus(); });
+BODY.addEventListener('mousedown', (event) => {
+  if (event.path[2].id) {
+    keyDownHandler({
+      code: event.path[2].id,
+    });
+  }
+});
+BODY.addEventListener('mouseup', (event) => {
+  if (event.path[2].id) {
+    keyUpHandler({
+      code: event.path[2].id,
+    });
+  }
+});
 
 class Keyboard {
   constructor() {
+    if (localStorage.lang) {
+      lang = localStorage.lang;
+    }
     keyboardRows.forEach((row, index) => {
       const keyboardRow = document.createElement('div');
       keyboardRow.id = `row${index}`;
@@ -385,87 +460,11 @@ class Keyboard {
       keyboardWrapper.appendChild(keyboardRow);
     });
 
-    textArea.dispatchEvent(new KeyboardEvent('keydown', { code: 'CapsLock' }));
-    textArea.dispatchEvent(new KeyboardEvent('keydown', { code: 'CapsLock' }));
+    // textArea.dispatchEvent(new KeyboardEvent('keydown', { code: 'CapsLock' }));
+    // textArea.dispatchEvent(new KeyboardEvent('keydown', { code: 'CapsLock' }));
   }
 }
 
 const kb = new Keyboard();
 textArea.focus();
-
-function switchLang() {
-  if (AltFlag && ControlFlag) {
-    if (lang === 'en') {
-      lang = 'ru';
-    } else {
-      lang = 'en';
-    }
-    AltFlag = false;
-    ControlFlag = false;
-  }
-}
-
-function updateLang() {
-  const keys = document.querySelectorAll(`.${lang === 'en' ? 'ru' : 'en'}`);
-  keys.forEach((k) => k.classList.add('hidden'));
-  const keysNew = document.querySelectorAll(`.${lang}`);
-  keysNew.forEach((k) => k.classList.remove('hidden'));
-}
-
-function shiftOn(on) {
-  const keys = document.querySelectorAll(`.${!on ? 'shift' : 'regular'}`);
-  keys.forEach((k) => k.classList.add('hidden'));
-  const keysNew = document.querySelectorAll(`.${on ? 'shift' : 'regular'}`);
-  keysNew.forEach((k) => k.classList.remove('hidden'));
-}
-
-function getCurrentLineNumber(textarea) {
-  return textarea.value.substr(0, textarea.selectionStart).split('\n').length;
-}
-
-function getTotalLinesNumber(textarea) {
-  return textarea.value.split('\n').length;
-}
-
-// returns object with array of all \n positions and with a current line and shift
-function getLinesInfo(textarea) {
-  const newLinePositionsArray = textarea.value.split('').reduce((acc, val, index) => {
-    if (val === '\n') {
-      acc.push(index);
-    }
-    return acc;
-  }, []);
-
-  return {
-    newLines: newLinePositionsArray,
-    currentLine: getCurrentLineNumber(textarea),
-    totalLines: getTotalLinesNumber(textarea),
-    shiftInLine: textarea.selectionStart
-      - (newLinePositionsArray[getCurrentLineNumber(textarea) - 2] || 0),
-  };
-}
-
-// textArea.addEventListener('focus', (event) => {
-//   // console.log(event.getModifierState('CapsLock'));
-// }, true);
-// function drawKeyboard() {
-//   keyboardRows.forEach((row, index) => {
-//     const keyboardRow = document.createElement('div');
-//     keyboardRow.id = `row${index}`;
-//     keyboardRow.classList.add('keyboard-row');
-//     row.forEach((keyCode) => {
-//       const Key = document.createElement('div');
-//       Key.id = keyCode;
-//       Key.classList.add('key');
-//       if (keyCode !== 'Space') {
-//         Key.innerHTML = layoutEn[keyCode].regular;
-//       } else {
-//         Key.innerHTML = '&nbsp;';
-//       }
-//       keyboardRow.appendChild(Key);
-//     });
-//     keyboardWrapper.appendChild(keyboardRow);
-//   });
-// }
-
-// drawKeyboard();
+kb.AltFlag = true;
